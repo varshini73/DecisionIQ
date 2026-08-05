@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Data (raw/processed data shouldn't live in git -- too large, often licensed)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/external/*
+!data/external/.gitkeep
+
+# Models (large binaries -- track via releases or DVC/LFS instead)
+models/*.pkl
+models/*.json
+!models/.gitkeep
+
+# Reports (generated artifacts)
+reports/*.pdf
+!reports/.gitkeep
+
+# Streamlit
+.streamlit/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Environment
+.env
