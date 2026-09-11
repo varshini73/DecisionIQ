@@ -22,6 +22,10 @@ st.caption("Adjust policy levers and see the live effect on safety stock, reorde
 
 decisions = pd.read_parquet(DATA_PROCESSED_DIR / "decisions.parquet")
 policy = pd.read_parquet(DATA_PROCESSED_DIR / "inventory_policy.parquet")
+policy = policy.merge(
+    decisions[["store_id", "sku_id", "decision", "priority"]],
+    on=["store_id", "sku_id"], how="left",
+)
 
 st.subheader("Quick Presets")
 preset_choice = st.selectbox(
@@ -42,11 +46,18 @@ demand_uplift = col_x.slider("Demand Change (%)", -50, 100, int(demand_uplift))
 lead_time_mult = col_y.slider("Lead Time Multiplier", 0.5, 3.0, float(lead_time_mult), step=0.1)
 service_level = col_z.slider("Target Service Level (%)", 80, 99, int(service_level))
 
+inventory_override = st.number_input(
+    "Current Inventory Override (optional; applies to all displayed items)",
+    min_value=0.0, value=0.0,
+    help="Set a value to test a common inventory position; leave at 0 to retain stored inventory.",
+)
+
 sim = simulate(
     policy,
     demand_uplift_pct=demand_uplift,
     lead_time_multiplier=lead_time_mult,
     service_level_pct=service_level,
+    inventory_level=inventory_override if inventory_override > 0 else None,
 )
 summary = scenario_summary(sim)
 
@@ -67,9 +78,9 @@ st.info(
 
 st.subheader("Simulated Policy Table")
 st.dataframe(
-    sim[["store_id", "sku_id", "abc_class", "safety_stock", "sim_safety_stock",
+    sim[["store_id", "sku_id", "abc_class", "decision", "sim_decision", "priority", "sim_priority", "safety_stock", "sim_safety_stock",
          "reorder_point", "sim_reorder_point", "sim_days_until_stockout",
-         "sim_holding_cost_delta", "sim_stockout_cost"]].sort_values(
+         "sim_recommended_qty", "sim_holding_cost_delta", "sim_stockout_cost"]].sort_values(
         "sim_stockout_cost", ascending=False
     ),
     use_container_width=True,

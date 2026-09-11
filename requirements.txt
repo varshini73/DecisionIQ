@@ -1,17 +1,11 @@
 pandas>=2.0.0
 numpy>=1.24.0
+pyarrow>=14.0.0
 scikit-learn>=1.3.0
-xgboost>=2.0.0
-lightgbm>=4.0.0
-prophet>=1.1.5
+joblib>=1.3.0
 streamlit>=1.28.0
 plotly>=5.17.0
-sqlalchemy>=2.0.0
-matplotlib>=3.7.0
-seaborn>=0.12.0
-python-dateutil>=2.8.2
-scipy>=1.11.0
-shap>=0.44.0
-joblib>=1.3.0
 pytest>=7.4.0
-jupyter>=1.0.0
+# Optional: enables the primary model. Without it, a clearly labelled
+# scikit-learn Histogram Gradient Boosting fallback is used.
+lightgbm>=4.0.0

@@ -15,6 +15,7 @@ lever, and returns the recomputed policy + a delta summary.
 import numpy as np
 import pandas as pd
 from config import CONFIG
+from business_rules import classify_decision, classify_urgency, recommended_quantity, priority_label
 
 # Approximate z-scores for common service levels (used by the dashboard slider)
 Z_LOOKUP = {80: 0.84, 85: 1.04, 90: 1.28, 95: 1.65, 97: 1.88, 99: 2.33}
@@ -29,6 +30,7 @@ def simulate(
     demand_uplift_pct: float = 0.0,
     lead_time_multiplier: float = 1.0,
     service_level_pct: int = None,
+    inventory_level: float = None,
 ) -> pd.DataFrame:
     """
     Recomputes safety stock, reorder point, and cost impact under a scenario.
@@ -42,6 +44,10 @@ def simulate(
     service_level_pct : overrides CONFIG's default service level if provided
     """
     sim = df.copy()
+    if inventory_level is not None:
+        if inventory_level < 0:
+            raise ValueError("inventory_level must be non-negative")
+        sim["inventory_level"] = float(inventory_level)
     z = z_for_service_level(service_level_pct) if service_level_pct else CONFIG["service_level_z"]
     uplift_factor = 1 + demand_uplift_pct / 100
 
@@ -58,8 +64,8 @@ def simulate(
         sim["inventory_level"] / sim["sim_avg_daily_demand"].replace(0, np.nan)
     ).clip(lower=0)
 
-    # Cost deltas vs. current policy
-    unit_cost = 10.0  # flat assumption; swap in real unit cost column if available
+    # Cost deltas use the observed unit cost when available, not a UI constant.
+    unit_cost = sim["unit_cost"] if "unit_cost" in sim.columns else 10.0
     holding_cost_per_unit_year = CONFIG["holding_cost_rate"] * unit_cost
     sim["sim_holding_cost_delta"] = (
         (sim["sim_safety_stock"] - sim["safety_stock"]) * holding_cost_per_unit_year
@@ -67,6 +73,14 @@ def simulate(
 
     shortfall = (sim["sim_reorder_point"] - sim["inventory_level"]).clip(lower=0)
     sim["sim_stockout_cost"] = shortfall * unit_cost * CONFIG["stockout_margin_loss_rate"]
+    sim["sim_eoq"] = sim.get("eoq", shortfall).clip(lower=0)
+    sim["sim_decision"] = sim.apply(lambda r: classify_decision(
+        r["inventory_level"], r["sim_reorder_point"], r["sim_days_until_stockout"], r["sim_lead_time_days"]
+    ), axis=1)
+    sim["sim_recommended_qty"] = sim.apply(lambda r: recommended_quantity(
+        r["sim_decision"], r["sim_reorder_point"], r["inventory_level"], r["sim_eoq"]
+    ), axis=1)
+    sim["sim_priority"] = sim.apply(lambda r: priority_label(classify_urgency(r["sim_decision"], r["abc_class"])), axis=1)
 
     return sim
 

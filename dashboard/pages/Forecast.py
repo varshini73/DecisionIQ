@@ -35,9 +35,9 @@ series = forecasts[
 ].sort_values("date")
 
 fig = go.Figure()
-fig.add_trace(go.Scatter(x=series["date"], y=series["demand_est"],
+fig.add_trace(go.Scatter(x=series["date"], y=series["actual_demand"],
                           name="Actual (demand-corrected)", mode="lines"))
-fig.add_trace(go.Scatter(x=series["date"], y=series["forecast"],
+fig.add_trace(go.Scatter(x=series["date"], y=series["forecast_demand"],
                           name="Forecast", mode="lines", line=dict(dash="dash")))
 fig.update_layout(title=f"Demand vs. Forecast — {sku_choice} @ {store_choice}",
                    xaxis_title="Date", yaxis_title="Units")

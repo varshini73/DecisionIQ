@@ -42,7 +42,7 @@ if view_mode == "Table":
         filtered[[
             "store_id", "sku_id", "abc_class", "decision", "priority", "status_light",
             "inventory_level", "recommended_qty", "days_until_stockout",
-            "estimated_stockout_cost", "explanation",
+            "estimated_stockout_cost", "reason",
         ]],
         use_container_width=True,
         height=550,
@@ -64,4 +64,4 @@ else:
             c1.metric("Current Stock", f"{row['inventory_level']:.0f} units")
             c2.metric("Recommended Action", action)
             c3.metric("Priority", row["priority"])
-            st.caption(f"**Reason:** {row['explanation']}")
+            st.caption(f"**Reason:** {row['reason']}")

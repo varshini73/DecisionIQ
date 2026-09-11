@@ -17,6 +17,7 @@ data/external/*
 
 # Models (large binaries -- track via releases or DVC/LFS instead)
 models/*.pkl
+models/*.joblib
 models/*.json
 !models/.gitkeep
 

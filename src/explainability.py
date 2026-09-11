@@ -55,7 +55,7 @@ FEATURE_LABELS = {
 
 
 def load_model():
-    for fname in ["lightgbm_demand_model.pkl", "xgboost_demand_model.pkl"]:
+    for fname in ["demand_model.joblib", "lightgbm_demand_model.pkl", "xgboost_demand_model.pkl"]:
         path = MODELS_DIR / fname
         if path.exists():
             return joblib.load(path)
